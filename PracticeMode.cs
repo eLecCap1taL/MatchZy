@@ -189,8 +189,9 @@ namespace MatchZy
             {
                 if (spawn.IsValid && spawn.Enabled && spawn.Priority == minPriority)
                 {
-                    auto res = new Position(spawn.CBodyComponent?.SceneNode?.AbsOrigin!, spawn.CBodyComponent?.SceneNode?.AbsRotation!);
-                    PrintToAllChat(res);
+                    Position position = new(spawn.CBodyComponent?.SceneNode?.AbsOrigin!, spawn.CBodyComponent?.SceneNode?.AbsRotation!);
+                    Position res= position;
+                    PrintToAllChat("setpos "+res.PlayerPosition.X.ToString()+" "+res.PlayerPosition.Y.ToString()+" "+res.PlayerPosition.Z.ToString()+";setang "+res.PlayerAngle.X.ToString()+" "+res.PlayerAngle.Y.ToString()+" "+res.PlayerAngle.Z.ToString());
                     spawnsData[(byte)CsTeam.CounterTerrorist].Add(new Position(spawn.CBodyComponent?.SceneNode?.AbsOrigin!, spawn.CBodyComponent?.SceneNode?.AbsRotation!));
                 }
             }
@@ -200,6 +201,9 @@ namespace MatchZy
             {
                 if (spawn.IsValid && spawn.Enabled && spawn.Priority == minPriority)
                 {
+                    Position position = new(spawn.CBodyComponent?.SceneNode?.AbsOrigin!, spawn.CBodyComponent?.SceneNode?.AbsRotation!);
+                    Position res= position;
+                    PrintToAllChat("setpos "+res.PlayerPosition.X.ToString()+" "+res.PlayerPosition.Y.ToString()+" "+res.PlayerPosition.Z.ToString()+";setang "+res.PlayerAngle.X.ToString()+" "+res.PlayerAngle.Y.ToString()+" "+res.PlayerAngle.Z.ToString());
                     spawnsData[(byte)CsTeam.Terrorist].Add(new Position(spawn.CBodyComponent?.SceneNode?.AbsOrigin!, spawn.CBodyComponent?.SceneNode?.AbsRotation!));
                 }
             }
