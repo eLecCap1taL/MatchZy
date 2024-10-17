@@ -185,7 +185,7 @@ namespace MatchZy
                 }
             }
 
-            Player.PrintToConsole("ctbegin");
+            player.PrintToConsole("ctbegin");
             Server.PrintToConsole("ctbegin");
             foreach (var spawn in spawnsct)
             {
@@ -195,14 +195,14 @@ namespace MatchZy
                     Position res= position;
                     string s="setpos "+res.PlayerPosition.X.ToString()+" "+res.PlayerPosition.Y.ToString()+" "+res.PlayerPosition.Z.ToString()+";setang "+res.PlayerAngle.X.ToString()+" "+res.PlayerAngle.Y.ToString()+" "+res.PlayerAngle.Z.ToString();
                     PrintToAllChat(s);
-                    Player.PrintToConsole(s);
+                    player.PrintToConsole(s);
                     Server.PrintToConsole(s);
                     spawnsData[(byte)CsTeam.CounterTerrorist].Add(new Position(spawn.CBodyComponent?.SceneNode?.AbsOrigin!, spawn.CBodyComponent?.SceneNode?.AbsRotation!));
                 }
             }
 
             Server.PrintToConsole("tbegin");
-            Player.PrintToConsole("tbegin");
+            player.PrintToConsole("tbegin");
             var spawnst = Utilities.FindAllEntitiesByDesignerName<SpawnPoint>("info_player_terrorist");
             foreach (var spawn in spawnst)
             {
@@ -212,7 +212,7 @@ namespace MatchZy
                     Position res= position;
                     string s="setpos "+res.PlayerPosition.X.ToString()+" "+res.PlayerPosition.Y.ToString()+" "+res.PlayerPosition.Z.ToString()+";setang "+res.PlayerAngle.X.ToString()+" "+res.PlayerAngle.Y.ToString()+" "+res.PlayerAngle.Z.ToString();
                     PrintToAllChat(s);
-                    Player.PrintToConsole(s);
+                    player.PrintToConsole(s);
                     Server.PrintToConsole(s);
                     spawnsData[(byte)CsTeam.Terrorist].Add(new Position(spawn.CBodyComponent?.SceneNode?.AbsOrigin!, spawn.CBodyComponent?.SceneNode?.AbsRotation!));
                 }
