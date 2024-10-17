@@ -32,7 +32,7 @@ namespace MatchZy
             player.PrintToChat($"{chatPrefix} {message}");
         }
 
-        private void ReplyToUserCommand(CCSPlayerController? player, string message, bool console = false)
+        private void ReplyToUserCommand(CCSPlayerController? player, string message, bool console = false,bool npre = false)
         {
             if (player == null)
             {
@@ -46,7 +46,8 @@ namespace MatchZy
                 }
                 else
                 {
-                    player.PrintToChat($"{chatPrefix} {message}");
+                    if(npre) player.PrintToChat($"{message}");
+                    else    player.PrintToChat($"{chatPrefix} {message}");
                 }
             }
         }
