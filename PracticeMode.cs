@@ -137,6 +137,38 @@ namespace MatchZy
             };
         }
 
+        public void StartPracticeModeP(CCSPlayerController? player)
+        {
+            if (matchStarted) return;
+            isPractice = true;
+            isDryRun = false;
+            isWarmup = false;
+            readyAvailable = false;
+
+            var absolutePath = Path.Join(Server.GameDirectory + "/csgo/cfg", practiceCfgPath);
+
+            if (File.Exists(Path.Join(Server.GameDirectory + "/csgo/cfg", practiceCfgPath)))
+            {
+                Log($"[StartWarmup] Starting Practice Mode! Executing Practice CFG from {practiceCfgPath}");
+                Server.ExecuteCommand($"exec {practiceCfgPath}");
+            }
+            else
+            {
+                Log($"[StartWarmup] Starting Practice Mode! Practice CFG not found in {absolutePath}, using default CFG!");
+                Server.ExecuteCommand("""sv_cheats "true"; mp_force_pick_time "0"; bot_quota "0"; sv_showimpacts "1"; mp_limitteams "0"; sv_deadtalk "true"; sv_full_alltalk "true"; sv_ignoregrenaderadio "false"; mp_forcecamera "0"; sv_grenade_trajectory_prac_pipreview "true"; sv_grenade_trajectory_prac_trailtime "3"; sv_infinite_ammo "1"; weapon_auto_cleanup_time "15"; weapon_max_before_cleanup "30"; mp_buy_anywhere "1"; mp_maxmoney "9999999"; mp_startmoney "9999999";""");
+                Server.ExecuteCommand("""mp_weapons_allow_typecount "-1"; mp_death_drop_breachcharge "false"; mp_death_drop_defuser "false"; mp_death_drop_taser "false"; mp_drop_knife_enable "true"; mp_death_drop_grenade "0"; ammo_grenade_limit_total "5"; mp_defuser_allocation "2"; mp_free_armor "2"; mp_ct_default_grenades "weapon_incgrenade weapon_hegrenade weapon_smokegrenade weapon_flashbang weapon_decoy"; mp_ct_default_primary "weapon_m4a1";""");
+                Server.ExecuteCommand("""mp_t_default_grenades "weapon_molotov weapon_hegrenade weapon_smokegrenade weapon_flashbang weapon_decoy"; mp_t_default_primary "weapon_ak47"; mp_warmup_online_enabled "true"; mp_warmup_pausetimer "1"; mp_warmup_start; bot_quota_mode fill; mp_solid_teammates 2; mp_autoteambalance false; mp_teammates_are_enemies false; buddha 1; buddha_ignore_bots 1; buddha_reset_hp 100;""");
+            }
+            GetSpawnsP(player);
+            PrintToAllChat($"Practice mode loaded!");
+            Server.PrintToChatAll($" {ChatColors.Green}Spawns: {ChatColors.Default}.spawn, .ctspawn, .tspawn, .bestspawn, .worstspawn");
+            Server.PrintToChatAll($" {ChatColors.Green}Bots: {ChatColors.Default}.bot, .nobots, .crouchbot, .boost, .crouchboost");
+            Server.PrintToChatAll($" {ChatColors.Green}Nades: {ChatColors.Default}.loadnade, .savenade, .importnade, .listnades");
+            Server.PrintToChatAll($" {ChatColors.Green}Nade Throw: {ChatColors.Default}.rethrow, .throwindex <index>, .lastindex, .delay <number>");
+            Server.PrintToChatAll($" {ChatColors.Green}Utility & Toggles: {ChatColors.Default}.clear, .fastforward, .last, .back, .solid, .impacts, .traj");
+            Server.PrintToChatAll($" {ChatColors.Green}Sides & Others: {ChatColors.Default}.ct, .t, .spec, .fas, .god, .dryrun, .break, .exitprac");
+        }
+
         public void StartPracticeMode()
         {
             if (matchStarted) return;
@@ -169,7 +201,7 @@ namespace MatchZy
             Server.PrintToChatAll($" {ChatColors.Green}Sides & Others: {ChatColors.Default}.ct, .t, .spec, .fas, .god, .dryrun, .break, .exitprac");
         }
 
-        public void GetSpawns()
+        public void GetSpawnsP(CCSPlayerController? player)
         {
             // Resetting spawn data to avoid any glitches
             spawnsData = GetEmptySpawnsData();
@@ -186,7 +218,53 @@ namespace MatchZy
             }
 
             player.PrintToConsole("ctbegin");
-            Server.PrintToConsole("ctbegin");
+            foreach (var spawn in spawnsct)
+            {
+                if (spawn.IsValid && spawn.Enabled && spawn.Priority == minPriority)
+                {
+                    Position position = new(spawn.CBodyComponent?.SceneNode?.AbsOrigin!, spawn.CBodyComponent?.SceneNode?.AbsRotation!);
+                    Position res= position;
+                    string s="P setpos "+res.PlayerPosition.X.ToString()+" "+res.PlayerPosition.Y.ToString()+" "+res.PlayerPosition.Z.ToString()+";setang "+res.PlayerAngle.X.ToString()+" "+res.PlayerAngle.Y.ToString()+" "+res.PlayerAngle.Z.ToString();
+                    PrintToAllChat(s);
+                    player.PrintToConsole(s);
+                    spawnsData[(byte)CsTeam.CounterTerrorist].Add(new Position(spawn.CBodyComponent?.SceneNode?.AbsOrigin!, spawn.CBodyComponent?.SceneNode?.AbsRotation!));
+                }
+            }
+
+            player.PrintToConsole("tbegin");
+            var spawnst = Utilities.FindAllEntitiesByDesignerName<SpawnPoint>("info_player_terrorist");
+            foreach (var spawn in spawnst)
+            {
+                if (spawn.IsValid && spawn.Enabled && spawn.Priority == minPriority)
+                {
+                    Position position = new(spawn.CBodyComponent?.SceneNode?.AbsOrigin!, spawn.CBodyComponent?.SceneNode?.AbsRotation!);
+                    Position res= position;
+                    string s="P setpos "+res.PlayerPosition.X.ToString()+" "+res.PlayerPosition.Y.ToString()+" "+res.PlayerPosition.Z.ToString()+";setang "+res.PlayerAngle.X.ToString()+" "+res.PlayerAngle.Y.ToString()+" "+res.PlayerAngle.Z.ToString();
+                    PrintToAllChat(s);
+                    player.PrintToConsole(s);
+                    spawnsData[(byte)CsTeam.Terrorist].Add(new Position(spawn.CBodyComponent?.SceneNode?.AbsOrigin!, spawn.CBodyComponent?.SceneNode?.AbsRotation!));
+                }
+            }
+
+            GetCoachSpawns();
+        }
+
+        public void GetSpawns()
+        {
+            // Resetting spawn data to avoid any glitches
+            spawnsData = GetEmptySpawnsData();
+
+            int minPriority = 1;
+
+            var spawnsct = Utilities.FindAllEntitiesByDesignerName<SpawnPoint>("info_player_counterterrorist");
+            foreach (var spawn in spawnsct)
+            {
+                if (spawn.IsValid && spawn.Enabled && spawn.Priority < minPriority)
+                {
+                    minPriority = spawn.Priority;
+                }
+            }
+
             foreach (var spawn in spawnsct)
             {
                 if (spawn.IsValid && spawn.Enabled && spawn.Priority == minPriority)
@@ -195,14 +273,10 @@ namespace MatchZy
                     Position res= position;
                     string s="setpos "+res.PlayerPosition.X.ToString()+" "+res.PlayerPosition.Y.ToString()+" "+res.PlayerPosition.Z.ToString()+";setang "+res.PlayerAngle.X.ToString()+" "+res.PlayerAngle.Y.ToString()+" "+res.PlayerAngle.Z.ToString();
                     PrintToAllChat(s);
-                    player.PrintToConsole(s);
-                    Server.PrintToConsole(s);
                     spawnsData[(byte)CsTeam.CounterTerrorist].Add(new Position(spawn.CBodyComponent?.SceneNode?.AbsOrigin!, spawn.CBodyComponent?.SceneNode?.AbsRotation!));
                 }
             }
 
-            Server.PrintToConsole("tbegin");
-            player.PrintToConsole("tbegin");
             var spawnst = Utilities.FindAllEntitiesByDesignerName<SpawnPoint>("info_player_terrorist");
             foreach (var spawn in spawnst)
             {
@@ -212,8 +286,6 @@ namespace MatchZy
                     Position res= position;
                     string s="setpos "+res.PlayerPosition.X.ToString()+" "+res.PlayerPosition.Y.ToString()+" "+res.PlayerPosition.Z.ToString()+";setang "+res.PlayerAngle.X.ToString()+" "+res.PlayerAngle.Y.ToString()+" "+res.PlayerAngle.Z.ToString();
                     PrintToAllChat(s);
-                    player.PrintToConsole(s);
-                    Server.PrintToConsole(s);
                     spawnsData[(byte)CsTeam.Terrorist].Add(new Position(spawn.CBodyComponent?.SceneNode?.AbsOrigin!, spawn.CBodyComponent?.SceneNode?.AbsRotation!));
                 }
             }
@@ -793,7 +865,7 @@ namespace MatchZy
             //     return;
             // }
 	
-            StartPracticeMode();
+            StartPracticeModeP(player);
         }
 
         [ConsoleCommand("css_dry", "Starts dryrun in practice mode")]
